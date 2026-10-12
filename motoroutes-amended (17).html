@@ -1,0 +1,508 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Moto Routes</title><link href="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css" rel="stylesheet"><style>
+:root{--bg:#101419;--panel:#191f26;--muted:#9ca9b5;--line:#29323c;--accent:#f08c35;--text:#f5f7f9}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px Inter,system-ui,Arial,sans-serif}header{height:64px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:#151a20}.brand{display:flex;align-items:center;gap:11px;font-weight:750;font-size:17px}.logo{width:34px;height:34px;border-radius:10px;background:var(--accent);display:grid;place-items:center;color:#171717;font-size:19px}.tag{color:var(--muted);font-size:12px}.app{height:calc(100vh - 64px);display:grid;grid-template-columns:355px 1fr}.side{background:var(--panel);padding:22px 18px;overflow:auto;border-right:1px solid var(--line)}h1{font-size:23px;margin:0 0 5px}.intro{color:var(--muted);line-height:1.5;margin:0 0 20px}.label{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:#bac3cb;font-weight:700;margin:18px 0 8px}.field{display:flex;gap:8px;align-items:center;background:#11161b;border:1px solid var(--line);border-radius:9px;padding:0 11px;margin-bottom:8px}.field span{color:var(--accent);font-size:18px}.field input{width:100%;background:transparent;border:0;outline:0;color:var(--text);padding:12px 0;font-size:13px}.field input::placeholder{color:#75818c}.row{display:flex;gap:8px}.row>*{flex:1}.btn{border:1px solid var(--line);background:#222a32;color:var(--text);border-radius:8px;padding:10px 12px;cursor:pointer;font-weight:650}.btn:hover{background:#2b3640}.primary{background:var(--accent);border-color:var(--accent);color:#171717}.primary:hover{background:#ff9d4c}.select{width:100%;background:#11161b;border:1px solid var(--line);border-radius:8px;color:var(--text);padding:11px}.hint{color:var(--muted);font-size:12px;line-height:1.45;margin:8px 0 12px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.stat{border:1px solid var(--line);background:#14191f;padding:12px;border-radius:9px}.stat small{display:block;color:var(--muted);margin-bottom:6px}.stat strong{font-size:16px}.status{color:var(--muted);font-size:12px;line-height:1.45;margin-top:12px;min-height:34px}.waypoints{font-size:12px;color:#c8d0d7;line-height:1.6;max-height:130px;overflow:auto}.attribution{font-size:11px;color:var(--muted);line-height:1.45;margin-top:18px}.mapwrap{position:relative;min-width:0}#map{position:absolute;inset:0}.maptip{position:absolute;z-index:2;top:14px;left:14px;background:#171d24ef;padding:9px 12px;border:1px solid #38434e;border-radius:8px;color:#dce2e7;font-size:12px;pointer-events:none}.marker-label{background:#161d24;color:white;border:1px solid #43515d;padding:5px 8px;border-radius:6px;font-size:11px;white-space:nowrap}.maplibregl-ctrl-group{background:#20272f!important}.results{display:grid;gap:8px;margin-top:8px}.result{padding:10px;border:1px solid var(--line);border-radius:8px;background:#141a20}.result a{color:#ffad66;text-decoration:none;font-weight:650}.result p{margin:5px 0;color:#c2cbd3;font-size:12px;line-height:1.4}.result small{color:#83909c}.checkrow{display:flex;align-items:center;gap:7px;color:#d7dee4;font-size:12px;margin:8px 0}.checkrow input{accent-color:var(--accent)}@media(max-width:800px){.app{height:auto;min-height:calc(100vh - 64px);grid-template-columns:1fr;grid-template-rows:auto 60vh}.side{border-right:0;border-bottom:1px solid var(--line)}header{padding:0 14px}.tag{display:none}}
+</style></head><body><header><div class="brand"><div class="logo">⌁</div><div>MOTO ROUTES</div></div><div class="tag">Plan the ride. Find the road less travelled.</div></header><div class="app"><aside class="side"><h1>Plan a ride</h1><p class="intro">Enter places or coordinates, click the map for shaping points, then plan a road route.</p>
+<div class="label">Start</div><div class="field"><span>●</span><input id="start" placeholder="Place name or latitude, longitude"></div><div class="label">Destination</div><div class="field"><span>◎</span><input id="end" placeholder="Place name or latitude, longitude"></div><div class="label">Placement</div><div class="checkrow" role="radiogroup" aria-label="Waypoint placement"><label><input type="radio" name="placement" value="via" checked> Via</label><label><input type="radio" name="placement" value="visit"> Visit</label><label><input type="radio" name="placement" value="combined"> Combined</label></div><div class="label">Route preference</div><select id="preference" class="select"><option value="normal">Standard road route</option><option value="scenic">Scenic route (best-effort)</option><option value="community">Community ride suggestions near route</option></select><p class="hint">Routing follows the road network. Standard uses the normal road route. Scenic compares alternatives from two routing services, may be up to 70% longer, prefers B roads and minor/twisty roads, and keeps A/major roads to 30% or less.</p><div class="row"><button class="btn primary" id="plan">Plan route</button><button class="btn" id="fit">Fit route</button></div><div class="row" style="margin-top:8px"><button class="btn" id="weather">Show weather radar</button><button class="btn" id="weatherOff" style="background:#222a32;color:var(--text)">Hide radar</button></div><div class="row" style="margin-top:8px"><button class="btn" id="export">Export GPX</button><button class="btn" id="share">Send to phone</button></div><div class="row" style="margin-top:8px"><button class="btn" id="import">Import GPX</button><input type="file" id="gpxFile" accept=".gpx,application/gpx+xml,text/xml" style="display:none"></div><div class="row" style="margin-top:8px"><button class="btn" id="undo">Undo waypoint</button><button class="btn" id="clear">Clear all</button></div>
+<div class="label">Biker cafés</div><div class="row"><button class="btn" id="cafes">Find cafés near route</button><button class="btn" id="clearCafes">Clear cafés</button></div><p class="hint">Searches OpenStreetMap cafés and motorcycle-tagged pubs within about 2 miles of the route. “Biker friendly” tagging is incomplete, so check results before relying on them.</p>
+<div class="label">Ride suggestions</div><label class="checkrow"><input type="checkbox" id="showCommunity" checked> Show community links near route</label><button class="btn" id="discover" style="width:100%">Find ride inspiration</button><div id="suggestions" class="results"><div class="hint">Automatically finds riding routes between the named start, midpoint and finish of your route.</div></div>
+<div class="label">Ride summary</div><div class="stats"><div class="stat"><small>Distance</small><strong id="distance">—</strong></div><div class="stat"><small>Estimated time</small><strong id="duration">—</strong></div><div class="stat"><small>Avg temperature</small><strong id="avgTemp">—</strong></div><div class="stat"><small>Min / max elevation</small><strong id="elevRange">—</strong></div><div class="stat"><small>Elevation gain</small><strong id="elevGain">—</strong></div><div class="stat"><small>Highest point</small><strong id="elevMax">—</strong></div></div><div class="label">Ride forecast</div><div id="rideForecast" class="status">—</div><div class="label">Record my ride</div>
+<div class="stats"><div class="stat"><small>Distance</small><strong id="recDistance">0.0 mi</strong></div><div class="stat"><small>Time</small><strong id="recTime">0 min</strong></div><div class="stat"><small>Points</small><strong id="recPoints">0</strong></div></div>
+<button class="btn" id="gpsAllow" style="width:100%;background:#4dabf7;color:#101418">Allow GPS location</button>
+<button class="btn" id="recStart" style="width:100%;margin-top:8px">Start recording</button>
+<button class="btn" id="recStop" style="width:100%;margin-top:8px">Stop recording</button>
+<button class="btn" id="recSave" style="width:100%;margin-top:8px">Save my ride GPX</button>
+<button class="btn" id="recEmail" style="width:100%;margin-top:8px">Email my ride GPX</button>
+<div id="status" class="status">Enter a place name or coordinates, or click the map to add shaping points.</div><div class="label">Waypoints</div><div id="waypoints" class="waypoints">No shaping points yet.</div><div class="attribution">Map © OpenFreeMap, OpenMapTiles &amp; OpenStreetMap contributors. Café data: OpenStreetMap via Overpass. Weather radar: RainViewer. Community links open public YouTube/search results. Routing uses public OSRM services. Experimental prototype—not riding or navigation advice.</div></aside><main class="mapwrap"><div class="maptip">Click map to add shaping points · scroll to zoom</div><div id="map"></div></main></div>
+<script src="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js"></script><script>
+const map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[-1.5,52.5],zoom:5.5});
+
+function forceImportPan(coords){
+  try{
+    const pts=(coords||[]).map(p=>Array.isArray(p)?[Number(p[0]),Number(p[1])]:null)
+      .filter(p=>p&&Number.isFinite(p[0])&&Number.isFinite(p[1]));
+    if(!pts.length)return;
+    const b=new maplibregl.LngLatBounds();
+    pts.forEach(p=>b.extend(p));
+    if(pts.length===1){map.jumpTo({center:pts[0],zoom:12})}
+    else{
+      map.jumpTo({center:b.getCenter(),zoom:map.getZoom()});
+      map.fitBounds(b,{padding:70,maxZoom:13,duration:0,animate:false});
+    }
+    setTimeout(()=>{try{map.fitBounds(b,{padding:70,maxZoom:13,duration:0,animate:false})}catch(e){console.error(e)}},50);
+    setTimeout(()=>{try{map.fitBounds(b,{padding:70,maxZoom:13,duration:0,animate:false})}catch(e){console.error(e)}},300);
+  }catch(err){console.error('forceImportPan error',err)}
+}
+function moveMapNow(coords){
+  try{
+    const pts=(coords||[]).filter(p=>Array.isArray(p)&&Number.isFinite(p[0])&&Number.isFinite(p[1]));
+    if(!pts.length||!map)return;
+    if(pts.length===1){map.jumpTo({center:pts[0],zoom:Math.max(map.getZoom(),12)});return}
+    const b=new maplibregl.LngLatBounds();pts.forEach(p=>b.extend(p));
+    map.jumpTo({center:b.getCenter(),zoom:map.getZoom()});
+    map.fitBounds(b,{padding:70,maxZoom:13,duration:0,animate:false});
+  }catch(err){console.error('moveMapNow error',err)}
+}
+function fit(){forceImportPan((lastCoords&&lastCoords.length)?lastCoords:waypoints)}
+map.on('load',()=>{forceImportPan((lastCoords&&lastCoords.length)?lastCoords:waypoints)});map.addControl(new maplibregl.NavigationControl(),'top-right');
+function addTerrainSources(){if(!map.getSource('terrain-dem'))map.addSource('terrain-dem',{type:'raster-dem',url:'https://tiles.mapterhorn.com/tilejson.json',tileSize:512,maxzoom:12});if(!map.getSource('hillshade-dem'))map.addSource('hillshade-dem',{type:'raster-dem',url:'https://tiles.mapterhorn.com/tilejson.json',tileSize:256,maxzoom:12});}
+map.on('load',()=>{addTerrainSources();try{map.setTerrain({source:'terrain-dem',exaggeration:1.15})}catch(e){console.error(e)}});
+function playButtonClick(){try{const ctx=window.__motoAudio||(window.__motoAudio=new (window.AudioContext||window.webkitAudioContext)());const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(880,ctx.currentTime);o.frequency.exponentialRampToValueAtTime(1320,ctx.currentTime+.06);g.gain.setValueAtTime(.08,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.12);o.connect(g).connect(ctx.destination);o.start();o.stop(ctx.currentTime+.13)}catch(e){}}
+document.addEventListener('click',e=>{if(e.target.closest('button'))playButtonClick()});
+function makeMapButton(label,title,onclick){const b=document.createElement('button');b.className='maplibregl-ctrl-icon';b.type='button';b.title=title;b.setAttribute('aria-label',title);b.textContent=label;b.style.cssText='width:29px;height:29px;font:700 11px/29px Inter,system-ui,Arial;text-align:center;color:#333;background:#fff;border:0;cursor:pointer;';b.onclick=()=>{playButtonClick();onclick(b)};return b}
+function addMapButton(button){const c=document.createElement('div');c.className='maplibregl-ctrl maplibregl-ctrl-group';c.appendChild(button);map.addControl({onAdd:()=>c,onRemove:()=>{}},'top-right')}
+let terrain3DPlusOn=false;const terrain3DPlusButton=makeMapButton('3D+','Toggle enhanced mountain terrain with hillshade and elevations',b=>{terrain3DPlusOn=!terrain3DPlusOn;try{addTerrainSources();if(terrain3DPlusOn){map.setTerrain({source:'terrain-dem',exaggeration:2.5});if(!map.getLayer('hillshade-layer'))map.addLayer({id:'hillshade-layer',type:'hillshade',source:'hillshade-dem',paint:{'hillshade-exaggeration':0.8,'hillshade-shadow-color':'#1b1b1b','hillshade-highlight-color':'#ffffff','hillshade-accent-color':'#333333','hillshade-illumination-direction':315,'hillshade-illumination-anchor':'viewport'}});map.easeTo({pitch:75,bearing:-30,duration:800,zoom:Math.max(map.getZoom(),12)})}else{map.setTerrain(null);if(map.getLayer('hillshade-layer'))map.removeLayer('hillshade-layer');map.easeTo({pitch:0,bearing:0,duration:500})}b.style.background=terrain3DPlusOn?'#f08c35':'#fff';b.style.color=terrain3DPlusOn?'#171717':'#333'}catch(e){console.error(e)}});
+addMapButton(terrain3DPlusButton);map.on('error',e=>console.error('MapLibre error:',e));let waypoints=[],markers=[],cafeMarkers=[],lastCoords=[],routeName='Moto route';const $=id=>document.getElementById(id);
+function coord(s){let a=s.split(',').map(x=>Number(x.trim()));return a.length===2&&a.every(Number.isFinite)&&Math.abs(a[0])<=90&&Math.abs(a[1])<=180?[a[1],a[0]]:null}
+async function resolvePlace(s){const c=coord(s);if(c)return c;const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q='+encodeURIComponent(s),{headers:{Accept:'application/json'}});if(!r.ok)throw Error('Place search failed ('+r.status+')');const a=await r.json();if(!a.length)throw Error('No place found: '+s);return [Number(a[0].lon),Number(a[0].lat)]}
+function clearMarkers(){markers.forEach(m=>m.remove());markers=[]}function clearCafes(){cafeMarkers.forEach(m=>m.remove());cafeMarkers=[]}
+function addViaMarker(c,label){const el=document.createElement('div');el.className='marker-label';el.textContent=label;el.style.borderColor='#54c6a3';markers.push(new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(c).addTo(map))}
+function addCafeMarker(c,name,detail){const el=document.createElement('div');el.className='marker-label';el.style.borderColor='#ffd166';el.style.background='#fff8e6';el.style.color='#4a3600';el.textContent='☕ '+name;el.title=detail||name;cafeMarkers.push(new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(c).addTo(map))}
+let visitPoints=[];
+function renderWaypoints(){
+  const via=waypoints.map((p,i)=>`${i+1}. ${p[1].toFixed(5)}, ${p[0].toFixed(5)}`);
+  const visits=visitPoints.map((p,i)=>`Visit ${i+1}: ${p[1].toFixed(5)}, ${p[0].toFixed(5)} <span style="opacity:.7">(visit and return)</span>`);
+  const all=[...via,...visits];
+  $('waypoints').innerHTML=all.length?all.join('<br>'):'No shaping points yet.';
+}
+function distancePointToSegmentMiles(p,a,b){
+  const toRad=x=>x*Math.PI/180;
+  const lat1=toRad(a[1]),lat2=toRad(b[1]),lat3=toRad(p[1]);
+  const dLon=toRad(b[0]-a[0]);
+  const y=Math.sin(dLon)*Math.cos(lat2);
+  const x=Math.cos(lat1)*Math.sin(lat2)-Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
+  const bearingAB=Math.atan2(y,x);
+  const bearingAP=Math.atan2(Math.sin(toRad(p[0]-a[0]))*Math.cos(lat3),Math.cos(lat1)*Math.sin(lat3)-Math.sin(lat1)*Math.cos(lat3)*Math.cos(toRad(p[0]-a[0])));
+  const relative=bearingAP-bearingAB;
+  const dAC=haversineMiles(a,p),segment=haversineMiles(a,b);
+  const along=Math.abs(dAC*Math.cos(relative));
+  const t=Math.max(0,Math.min(1,segment>0?along/segment:0));
+  const closest=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
+  return haversineMiles(p,closest);
+}
+function nearestRoutePoint(p){
+  if(!lastCoords||lastCoords.length<2)return null;
+  let best={distance:Infinity,point:lastCoords[0]};
+  for(let i=1;i<lastCoords.length;i++){const d=distancePointToSegmentMiles(p,lastCoords[i-1],lastCoords[i]);if(d<best.distance)best={distance:d,point:lastCoords[i-1]}}
+  return best;
+}
+function ensureVisitSpurLayer(){
+  if(!map.getSource('visit-spur'))map.addSource('visit-spur',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+  if(!map.getLayer('visit-spur-line'))map.addLayer({id:'visit-spur-line',type:'line',source:'visit-spur',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#54c6a3','line-width':4,'line-dasharray':[2,2],'line-opacity':.95}});
+}
+function setVisitSpurs(){
+  ensureVisitSpurLayer();
+  const features=visitPoints.filter(p=>p.spur&&p.spur.length>1).map(p=>({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:p.spur}}));
+  map.getSource('visit-spur').setData({type:'FeatureCollection',features});
+}
+async function addVisitPoint(c){
+  const nearest=nearestRoutePoint(c);
+  visitPoints.push(c);addViaMarker(c,`VISIT ${visitPoints.length}`);renderWaypoints();
+  $('status').textContent='Adding road route to visit stop and back…';
+  try{
+    if(nearest){
+      const there=await getRoute([nearest.point,c]);
+      const back=await getRoute([c,nearest.point]);
+      c.spur=[...there.geometry.coordinates,...back.geometry.coordinates.slice(1)];
+      setVisitSpurs();
+      const miles=(there.distance+back.distance)/1609.34;
+      $('status').textContent=`Visit stop added. Road out-and-back: ${miles.toFixed(1)} miles. Main imported route unchanged.`;
+    }else{$('status').textContent='Visit stop added, but no imported route was available for a return road route.'}
+  }catch(e){$('status').textContent='Visit stop added, but could not calculate the road out-and-back: '+(e.message||e)}
+}
+function haversineMiles(a,b){const R=3958.8,toR=x=>x*Math.PI/180,dLat=toR(b[1]-a[1]),dLon=toR(b[0]-a[0]),x=Math.sin(dLat/2)**2+Math.cos(toR(a[1]))*Math.cos(toR(b[1]))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
+function routeMiles(coords){let m=0;for(let i=1;i<coords.length;i++)m+=haversineMiles(coords[i-1],coords[i]);return m}
+function updateSummary(){const miles=routeMeta.distanceKm!=null?routeMeta.distanceKm*0.621371:routeMiles(lastCoords);$('distance').textContent=`${miles.toFixed(1)} mi`;const mins=routeMeta.durationMin;$('duration').textContent=mins==null?'—':(mins>=60?`${Math.floor(mins/60)}h ${Math.round(mins%60)}m`:`${Math.round(mins)} min`);$('avgTemp').textContent=routeMeta.avgTempC==null?'—':`${routeMeta.avgTempC.toFixed(1)} °C`;if(routeMeta.minEle!=null&&routeMeta.maxEle!=null){$('elevRange').textContent=`${Math.round(routeMeta.minEle*3.28084)}–${Math.round(routeMeta.maxEle*3.28084)} ft`;$('elevMax').textContent=`${Math.round(routeMeta.maxEle*3.28084)} ft`}else{$('elevRange').textContent='—';$('elevMax').textContent='—'}$('elevGain').textContent=routeMeta.gainM!=null?`${Math.round(routeMeta.gainM*3.28084)} ft`:'—'}
+function weatherDescription(code){const names={0:'Clear',1:'Mostly clear',2:'Partly cloudy',3:'Overcast',45:'Fog',48:'Fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',66:'Freezing rain',67:'Freezing rain',71:'Light snow',73:'Snow',75:'Heavy snow',80:'Showers',81:'Showers',82:'Heavy showers',95:'Thunderstorms',96:'Thunderstorms',99:'Thunderstorms'};return names[code]||'Mixed conditions'}
+function briefForecast(hours){if(!hours.length)return 'Forecast unavailable.';const counts={};hours.forEach(h=>{const d=weatherDescription(h.code);counts[d]=(counts[d]||0)+1});const dominant=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];const maxRain=Math.max(...hours.map(h=>h.rain||0));const maxWind=Math.max(...hours.map(h=>h.wind||0));const rainText=maxRain>=60?'Wet ride likely':maxRain>=30?'Showers possible':'Mostly dry';const windText=maxWind>=25?'strong winds':maxWind>=15?'breezy':'light winds';return `${dominant}; ${rainText}, ${windText}.`}
+async function updateWeather(){
+  if(!lastCoords.length){$('rideForecast').textContent='—';return}
+  try{
+    const coords=lastCoords,points=[coords[0],coords[Math.floor(coords.length/2)],coords[coords.length-1]];
+    const lats=points.map(p=>p[1]).join(','),lons=points.map(p=>p[0]).join(',');
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&hourly=temperature_2m,weather_code,precipitation_probability,wind_speed_10m&forecast_days=2`);
+    if(!r.ok)throw Error('Weather service returned '+r.status);
+    const data=await r.json(),locations=Array.isArray(data)?data:[data],now=Date.now();
+    const durationHours=Math.max(.5,(routeMeta.durationMin||routeMiles(coords)/38*60)/60);
+    const windowHours=Math.min(6,Math.max(2,Math.ceil(durationHours*2)));
+    const samples=[];
+    locations.forEach(loc=>{const times=loc.hourly?.time||[],codes=loc.hourly?.weather_code||[],rain=loc.hourly?.precipitation_probability||[],wind=loc.hourly?.wind_speed_10m||[];times.forEach((t,i)=>{const time=Date.parse(t);if(time>=now&&time<=now+windowHours*3600*1000)samples.push({code:codes[i],rain:rain[i],wind:wind[i]})})});
+    $('rideForecast').textContent=`Next ${windowHours} hours: `+briefForecast(samples);
+  }catch(e){$('rideForecast').textContent='Forecast unavailable.'}
+  try{
+    const pts=lastCoords.filter((_,i)=>i%Math.max(1,Math.floor(lastCoords.length/10))===0).slice(0,10);
+    const lats=pts.map(p=>p[1]).join(','),lons=pts.map(p=>p[0]).join(',');
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&hourly=temperature_2m&forecast_days=1`);
+    if(!r.ok)throw Error('Weather service returned '+r.status);
+    const j=await r.json(),arr=Array.isArray(j)?j:[j];let vals=[];arr.forEach(loc=>{const t=loc.hourly?.temperature_2m||[];if(t.length)vals.push(...t)});
+    routeMeta.avgTempC=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+  }catch(e){routeMeta.avgTempC=null}
+  updateSummary();
+}
+function updateElevation(coords){const vals=coords.map(p=>p[2]).filter(Number.isFinite);if(vals.length){routeMeta.minEle=Math.min(...vals);routeMeta.maxEle=Math.max(...vals);let gain=0;for(let i=1;i<vals.length;i++)if(vals[i]>vals[i-1])gain+=vals[i]-vals[i-1];routeMeta.gainM=gain}else{routeMeta.minEle=routeMeta.maxEle=routeMeta.gainM=null}updateSummary()}
+async function updateElevationFromService(coords){
+  if(!coords||coords.length<2)return;
+  const pts=coords.filter((_,i)=>i%Math.max(1,Math.floor(coords.length/50))===0).slice(0,100);
+  if(pts.length<2)return;
+  const lats=pts.map(p=>p[1]).join(',');
+  const lons=pts.map(p=>p[0]).join(',');
+  for(let attempt=0;attempt<2;attempt++){
+    try{
+      const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lats}&longitude=${lons}`);
+      if(!r.ok)throw Error('Elevation service returned '+r.status);
+      const j=await r.json();
+      const e=j.elevation||[];
+      if(e.length){
+        routeMeta.minEle=Math.min(...e);
+        routeMeta.maxEle=Math.max(...e);
+        let gain=0;
+        for(let i=1;i<e.length;i++)if(e[i]>e[i-1])gain+=e[i]-e[i-1];
+        routeMeta.gainM=gain;
+        break;
+      }
+    }catch(err){
+      console.error('Elevation lookup failed',err);
+      if(attempt===1){routeMeta.minEle=routeMeta.maxEle=routeMeta.gainM=null}
+      else await new Promise(resolve=>setTimeout(resolve,500));
+    }
+  }
+  updateSummary();
+}
+function updateImportTime(coords,times){if(times&&times.length>=2){const mins=(times[times.length-1]-times[0])/60000;if(Number.isFinite(mins)&&mins>0){routeMeta.durationMin=mins;return}}const miles=routeMiles(coords);routeMeta.durationMin=miles/38*60}
+function drawLine(coords){if(!coords||coords.length<2)throw Error('No usable route geometry');routeMeta={distanceKm:null,durationMin:null,avgTempC:null,minEle:null,maxEle:null,gainM:null};lastCoords=coords;updateElevation(coords);updateWeather();const fc={type:'Feature',properties:{},geometry:{type:'LineString',coordinates:coords}};if(map.getSource('route'))map.getSource('route').setData(fc);else{map.addSource('route',{type:'geojson',data:fc});map.addLayer({id:'route-casing',type:'line',source:'route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#101419','line-width':7,'line-opacity':.55}});map.addLayer({id:'route-line',type:'line',source:'route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#f08c35','line-width':4.5,'line-opacity':.95}})}lastCoords=coords}
+map.on('click',e=>{const point=[e.lngLat.lng,e.lngLat.lat],nearest=nearestRoutePoint(point),mode=document.querySelector('input[name="placement"]:checked')?.value||'via';const visit=mode==='visit'||(mode==='combined'&&lastCoords.length&&nearest&&nearest.distance<=1);if(visit){addVisitPoint(point);return}waypoints.push(point);addViaMarker(point,`VIA ${waypoints.length}`);renderWaypoints();moveMapNow([point]);showSuggestions();$('status').textContent='Via point added. Recalculate route to include it.'});
+async function getRoute(points){if(!points||points.length<2)throw Error('Need a start and destination');if(!points.every(p=>Array.isArray(p)&&Number.isFinite(p[0])&&Number.isFinite(p[1])))throw Error('Invalid coordinates supplied to router');const path=points.map(p=>`${p[0]},${p[1]}`).join(';');const urls=['https://router.project-osrm.org/route/v1/driving/'+path+'?overview=full&geometries=geojson&steps=true','https://routing.openstreetmap.de/routed-car/route/v1/driving/'+path+'?overview=full&geometries=geojson&steps=true'];let lastError=null;for(const u of urls){try{const r=await fetch(u);if(!r.ok){lastError=Error('Router returned '+r.status);continue}const j=await r.json();if(j.code!=='Ok'||!j.routes?.length){lastError=Error('No road route found');continue}const route=j.routes[0];if(!route.geometry?.coordinates||route.geometry.coordinates.length<2){lastError=Error('Router returned no road geometry');continue}return route}catch(e){lastError=e}}throw lastError||Error('Routing service unavailable')}
+async function getAlternatives(points){
+  const path=points.map(p=>p.join(',')).join(';');
+  const urls=[
+    `https://router.project-osrm.org/route/v1/driving/${path}?overview=full&geometries=geojson&steps=true&alternatives=3`,
+    `https://routing.openstreetmap.de/routed-car/route/v1/driving/${path}?overview=full&geometries=geojson&steps=true&alternatives=3`
+  ];
+  const all=[];
+  for(const u of urls){
+    try{
+      const r=await fetch(u);
+      if(!r.ok)continue;
+      const j=await r.json();
+      if(j.code==='Ok'&&Array.isArray(j.routes))all.push(...j.routes);
+    }catch(e){console.error('Alternative source failed',e)}
+  }
+  const seen=new Set();
+  return all.filter(r=>{
+    const key=`${Math.round(r.distance)}:${r.geometry?.coordinates?.[0]?.join(',')}`;
+    if(seen.has(key))return false;
+    seen.add(key);
+    return true;
+  });
+}
+function routeRoadMix(r){
+  const steps=r.legs.flatMap(l=>l.steps);
+  const dist=Math.max(r.distance,1);
+  let twisty=0,bRoad=0,major=0;
+  for(const st of steps){
+    const name=(st.name||'').toLowerCase();
+    const ref=(st.ref||'').toUpperCase().replace(/\s+/g,'');
+    const isMotorway=/motorway|autobahn|freeway/.test(name)||/^M\d/.test(ref);
+    const isARoad=/^A\d/.test(ref)||/\ba\d+\b/.test(name)||/primary|trunk/.test(name);
+    const isB=/^B\d/.test(ref)||/\bb\d+\b/.test(name)||/\bb\s?road\b/.test(name);
+    if(isB)bRoad+=st.distance;
+    if(isMotorway||isARoad)major+=st.distance;
+    if(!isMotorway&&!isARoad)twisty+=st.distance;
+  }
+  return {twistyPct:twisty/dist*100,bRoadPct:bRoad/dist*100,majorPct:major/dist*100};
+}
+function scenicScore(r,baseDistance){
+  const mix=routeRoadMix(r);
+  const enjoyable=Math.max(mix.bRoadPct,mix.twistyPct);
+  const lengthRatio=r.distance/Math.max(baseDistance,1);
+  const lengthPenalty=lengthRatio>1.7?Math.pow(lengthRatio-1.7,2)*250:0;
+  return enjoyable*2+mix.bRoadPct*1.5-majorPct(mix)*2-lengthPenalty;
+  function majorPct(m){return m.majorPct}
+}
+$('plan').onclick=async()=>{const st=$('start').value.trim(),et=$('end').value.trim();if(!st&&!waypoints.length){$('status').textContent='Enter a start or add at least one Via point.';return}try{$('status').textContent='Looking up places and calculating road route…';const s=st?await resolvePlace(st):waypoints[0],d=et?await resolvePlace(et):waypoints[waypoints.length-1];const routePoints=[s,...waypoints.filter((_,i)=>!((!st&&i===0)||(!et&&i===waypoints.length-1))),d];const startName=st||'Via 1',endName=et||`Via ${waypoints.length}`;routeName=(startName+' to '+endName).slice(0,120);let rt=await getRoute(routePoints);if($('preference').value==='scenic'){try{const alts=await getAlternatives(routePoints);if(alts.length>1){
+  const base=rt.distance;
+  const eligible=alts.filter(a=>{
+    const mix=routeRoadMix(a);
+    return a.distance<=base*1.7&&mix.majorPct<=30;
+  });
+  if(eligible.length){
+    rt=eligible.sort((a,b)=>scenicScore(b,base)-scenicScore(a,base))[0];
+    const mix=routeRoadMix(rt);
+    $('status').textContent=`Scenic route selected: ${Math.round(mix.twistyPct)}% minor/twisty roads, ${Math.round(mix.bRoadPct)}% B roads, ${Math.round(mix.majorPct)}% A/major roads.`;
+  }else{
+    $('status').textContent='No scenic alternative within 70% longer and 30% A/major roads; standard route kept.';
+  }
+}else $('status').textContent='No alternative available; standard road route shown.'}catch(e){$('status').textContent='Standard road route shown; scenic comparison unavailable.'}}else $('status').textContent='Road route calculated. Click the map to add shaping points, then plan again to include them.';drawLine(rt.geometry.coordinates);clearMarkers();waypoints.forEach((p,i)=>addViaMarker(p,`VIA ${i+1}`));routeMeta.distanceKm=rt.distance/1000;routeMeta.durationMin=rt.duration/60;await updateElevationFromService(rt.geometry.coordinates);updateSummary();fit();setTimeout(fit,300);map.once('idle',fit);showSuggestions()}catch(e){$('status').textContent='Could not plan a road route: '+e.message}};
+
+function xml(s){return String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&apos;'}[c]))}function safeFilePart(value,fallback){return String(value||fallback).normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||fallback}
+function routeNamesForExport(){const parts=(routeName||'').split(/\s+to\s+/i);return [$('start').value.trim()||parts[0]||(waypoints.length?'Via 1':'Start'),$('end').value.trim()||parts[1]||(waypoints.length?`Via ${waypoints.length}`:'End')]}
+function routeLabel(){return routeNamesForExport().join(' to ')}
+function gpxFilename(){const [start,end]=routeNamesForExport();return `${safeFilePart(start,'Start')}-to-${safeFilePart(end,'End')}.gpx`}
+function gpx(){
+  if(!lastCoords.length)throw Error('Plan or import a route first.');
+  const rp=lastCoords.map(([lon,lat])=>`<rtept lat="${lat.toFixed(7)}" lon="${lon.toFixed(7)}"/>`).join('');
+  const wp=[...waypoints.map(([lon,lat],i)=>`<wpt lat="${lat.toFixed(7)}" lon="${lon.toFixed(7)}"><name>Via ${i+1}</name></wpt>`),...visitPoints.map(([lon,lat],i)=>`<wpt lat="${lat.toFixed(7)}" lon="${lon.toFixed(7)}"><name>Visit ${i+1}</name></wpt>`)].join('');
+  const visitRoutes=visitPoints.filter(p=>p.spur&&p.spur.length>1).map((p,i)=>`<rte><name>Visit ${i+1} directions</name><rtept lat="${p[1].toFixed(7)}" lon="${p[0].toFixed(7)}"><name>Visit ${i+1}</name></rtept>${p.spur.map(([lon,lat])=>`<rtept lat="${lat.toFixed(7)}" lon="${lon.toFixed(7)}"/>`).join('')}</rte>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="MOTO_ROUTE.COM" xmlns="http://www.topografix.com/GPX/1/1"><metadata><name>${xml(routeLabel())}</name></metadata>${wp}<rte><name>${xml(routeLabel())}</name>${rp}</rte>${visitRoutes}</gpx>`;
+}
+function recordedGpx(){
+  if(recordedPoints.length<2)throw Error('Record a ride first.');
+  const pts=recordedPoints.map(p=>`<trkpt lat="${p[1].toFixed(7)}" lon="${p[0].toFixed(7)}">${Number.isFinite(p[2])?`<ele>${p[2].toFixed(1)}</ele>`:''}<time>${new Date(p[3]).toISOString()}</time></trkpt>`).join('');
+  const name=`My ride ${new Date(recordedPoints[0][3]).toLocaleDateString()}`;
+  return `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="MOTO_ROUTE.COM" xmlns="http://www.topografix.com/GPX/1/1"><metadata><name>${xml(name)}</name></metadata><trk><name>${xml(name)}</name><trkseg>${pts}</trkseg></trk></gpx>`;
+}
+function downloadGpx(data,filename){
+  const blob=new Blob([data],{type:'application/gpx+xml'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=filename;a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+function download(){try{const blob=new Blob([gpx()],{type:'application/gpx+xml'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='moto-route.gpx';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);$('status').textContent='Road-route GPX downloaded; transfer it to your phone or open it in a route app.'}catch(e){$('status').textContent=e.message}}let recordedPoints=[],recWatchId=null,recStartTs=0;
+function recUpdate(){
+  const miles=routeMiles(recordedPoints);
+  $('recDistance').textContent=`${miles.toFixed(1)} mi`;
+  const mins=Math.max(0,Math.round((Date.now()-recStartTs)/60000));
+  $('recTime').textContent=`${mins} min`;
+  $('recPoints').textContent=String(recordedPoints.length);
+}
+function ensureRecordLayer(){
+  if(!map.getSource('recorded'))map.addSource('recorded',{type:'geojson',data:{type:'Feature',properties:{},geometry:{type:'LineString',coordinates:[]}}});
+  if(!map.getLayer('recorded-line'))map.addLayer({id:'recorded-line',type:'line',source:'recorded',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#4dabf7','line-width':5,'line-opacity':.95}});
+}
+function updateRecordedLine(){
+  ensureRecordLayer();
+  map.getSource('recorded').setData({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:recordedPoints.map(p=>[p[0],p[1]])}});
+}
+$('gpsAllow').onclick=()=>{
+  if(!navigator.geolocation){$('status').textContent='This browser does not support GPS.';return}
+  $('status').textContent='Requesting phone location permission…';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    $('status').textContent=`GPS allowed. Location found: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}. You can now start recording.`;
+  },err=>{
+    if(err.code===err.PERMISSION_DENIED){$('status').textContent='Location was blocked. Tap the padlock beside the website address, tap Permissions, set Location to Allow, then reload this page.'}
+    else{$('status').textContent='GPS error: '+err.message}
+  },{enableHighAccuracy:true,timeout:15000});
+};
+$('recStart').onclick=()=>{
+  if(recWatchId!==null)return;
+  if(!navigator.geolocation){$('status').textContent='This browser does not support GPS.';return}
+  recordedPoints=[];recStartTs=Date.now();recUpdate();updateRecordedLine();
+  recWatchId=navigator.geolocation.watchPosition(pos=>{
+    const p=[pos.coords.longitude,pos.coords.latitude,pos.coords.altitude,pos.timestamp];
+    if(!recordedPoints.length||routeMiles([recordedPoints[recordedPoints.length-1],p])>0.003){recordedPoints.push(p);updateRecordedLine();recUpdate();map.easeTo({center:[p[0],p[1]],duration:500})}
+  },err=>{$('status').textContent='GPS error: '+err.message},{enableHighAccuracy:true,maximumAge:1000,timeout:15000});
+  $('status').textContent='Recording your ride. Keep the app open for the best GPS tracking.';
+};
+async function matchToRoads(coords){
+  const path=coords.map(c=>c.join(',')).join(';');
+  const urls=[
+    `https://router.project-osrm.org/match/v1/driving/${path}?geometries=geojson`,
+    `https://routing.openstreetmap.de/routed-car/match/v1/driving/${path}?geometries=geojson`
+  ];
+  let lastError='';
+  for(const u of urls){
+    try{
+      const r=await fetch(u);
+      if(!r.ok){lastError='Service returned '+r.status;continue}
+      const j=await r.json();
+      if(j.code==='Ok'&&j.matchings?.length&&j.matchings[0].geometry?.coordinates?.length>1)return j.matchings[0].geometry.coordinates;
+      lastError=j.message||'No road match found';
+    }catch(e){lastError=e.message||String(e)}
+  }
+  throw Error(lastError||'Could not match the route to roads');
+}
+$('recStop').onclick=async()=>{
+  if(recWatchId!==null){navigator.geolocation.clearWatch(recWatchId);recWatchId=null}
+  if(recordedPoints.length<2){$('status').textContent='Recording stopped. No usable GPS points were recorded.';return}
+  $('status').textContent='Tidying your ride to follow roads…';
+  try{
+    const coords=recordedPoints.map(p=>[p[0],p[1]]);
+    const matched=await matchToRoads(coords);
+    recordedPoints=matched.map((c,i)=>[c[0],c[1],null,recordedPoints[0][3]+(recordedPoints[recordedPoints.length-1][3]-recordedPoints[0][3])*(i/(matched.length-1))]);
+    updateRecordedLine();recUpdate();
+    lastCoords=matched;
+    drawLine(matched);
+    forceImportPan(matched);fit();
+    await updateElevationFromService(matched);
+    updateSummary();showSuggestions();
+    const data=recordedGpx();
+    downloadGpx(data,`My-Ride-${new Date().toISOString().slice(0,10)}.gpx`);
+    $('status').textContent='Ride tidied to roads, orange route updated, elevation refreshed, and ride GPX downloaded. Open it in OsmAnd and choose Follow track for exact-route navigation.';
+  }catch(e){$('status').textContent='Could not tidy the ride: '+(e.message||e)}
+};
+$('recSave').onclick=()=>{
+  try{
+    const data=recordedGpx();
+    downloadGpx(data,`My-Ride-${new Date().toISOString().slice(0,10)}.gpx`);
+    $('status').textContent='Your ride GPX has been downloaded. Open it in OsmAnd and choose Follow track.';
+  }catch(e){$('status').textContent=e.message}
+};
+$('recEmail').onclick=()=>{
+  try{
+    const data=recordedGpx();
+    const filename=`My-Ride-${new Date().toISOString().slice(0,10)}.gpx`;
+    downloadGpx(data,filename);
+    const miles=routeMiles(recordedPoints);
+    const mins=Math.max(1,Math.round((Date.now()-recStartTs)/60000));
+    const subject='MOTO_ROUTE.COM: My ride';
+    const body=`MOTO_ROUTE.COM\n\nMy ride\n\nGPX file: ${filename}\n\nRide summary\nDistance: ${miles.toFixed(1)} miles\nTime: ${mins} min\nGPS points: ${recordedPoints.length}\n\nRide safe`;
+    window.location.href=`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body+'\n\nAttachment: '+filename)}`;
+    $('status').textContent='Ride GPX downloaded and email draft prepared.';
+  }catch(e){$('status').textContent=e.message}
+};
+async function share(){
+  try{
+    const gpxData=gpx();
+    const filename=gpxFilename();
+    downloadGpx(gpxData,filename);
+    const miles=routeMeta.distanceKm!=null?routeMeta.distanceKm*0.621371:routeMiles(lastCoords);
+    const mins=routeMeta.durationMin||routeMiles(lastCoords)/38*60;
+    const duration=mins>=60?`${Math.floor(mins/60)}h ${Math.round(mins%60)}m`:`${Math.round(mins)} min`;
+    const temp=routeMeta.avgTempC==null?'Not available':`${routeMeta.avgTempC.toFixed(1)} °C`;
+    const forecast=$('rideForecast').textContent||'Not available';
+    const start=lastCoords[0],end=lastCoords[lastCoords.length-1];
+    const mainRoute=await getRoute([start,end]);
+    let directions=`Main route directions\n\n${routeDirections(mainRoute)}`;
+    for(let i=0;i<visitPoints.length;i++){
+      const visit=visitPoints[i];
+      const nearest=nearestRoutePoint(visit);
+      if(!nearest)continue;
+      try{
+        const visitRoute=await getRoute([nearest.point,visit,nearest.point]);
+        directions+=`\n\nVisit ${i+1} directions\n\n${routeDirections(visitRoute)}`;
+      }catch(e){directions+=`\n\nVisit ${i+1} directions\n\nRoad directions unavailable.`}
+    }
+    const visits=visitPoints.length?`${visitPoints.length} visit stop${visitPoints.length===1?'':'s'} included`:'No visit stops';
+    const subject=`MOTO_ROUTE.COM: ${routeLabel()}`;
+    const body=`MOTO_ROUTE.COM\n\n${routeLabel()}\n\nGPX file: ${filename}\n\nRide summary\nDistance: ${miles.toFixed(1)} miles\nEstimated time: ${duration}\nAverage temperature: ${temp}\nElevation gain: ${routeMeta.gainM!=null?Math.round(routeMeta.gainM*3.28084)+' ft':'Not available'}\nVisits: ${visits}\n\nWeather forecast\n${forecast}\n\n${directions}\n\nAttachment: ${filename}\nPlease attach the downloaded GPX file to this email.\n\nRide safe`;
+    window.location.href=`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    $('status').textContent='GPX downloaded and email draft prepared with clear turn-by-turn directions.';
+  }catch(e){
+    if(e.name!=='AbortError')$('status').textContent='Could not prepare the email draft: '+(e.message||e);
+  }
+}
+
+function importGpxFile(file){
+  const reader=new FileReader();
+  reader.onload=async()=>{
+    try{
+      const doc=new DOMParser().parseFromString(reader.result,'application/xml');
+      if(doc.querySelector('parsererror'))throw Error('The GPX file could not be parsed.');
+      const localName=el=>el.localName||el.tagName.replace(/^.*:/,'');
+      const all=[...doc.getElementsByTagName('*')];
+      const readPt=p=>[Number(p.getAttribute('lon')),Number(p.getAttribute('lat')),Number(p.querySelector('ele')?.textContent),Date.parse(p.querySelector('time')?.textContent||'')];
+      const routes=[...doc.getElementsByTagName('*')].filter(el=>localName(el)==='rte');
+      const mainRoute=routes.find(r=>!/^visit\s*\d+\s+directions$/i.test((r.querySelector('name')?.textContent||'').trim()));
+      const visitRoutes=routes.filter(r=>/^visit\s*\d+\s+directions$/i.test((r.querySelector('name')?.textContent||'').trim()));
+      const routePts=mainRoute?[...mainRoute.getElementsByTagName('*')].filter(el=>localName(el)==='rtept').map(readPt):[];
+      const trackPts=all.filter(el=>localName(el)==='trkpt').map(readPt);
+      const wayPts=all.filter(el=>localName(el)==='wpt').map(readPt);
+      const raw=routePts.length?routePts:(trackPts.length?trackPts:wayPts);
+      if(raw.length<2)throw Error('No usable route, track, or waypoint points found in this GPX.');
+      visitPoints=[];
+      visitRoutes.forEach(r=>{const pts=[...r.getElementsByTagName('*')].filter(el=>localName(el)==='rtept').map(readPt).map(p=>[p[0],p[1]]);if(pts.length>1){const destination=pts[0];destination.spur=pts;visitPoints.push(destination)}});
+      if(!visitPoints.length){const visitWaypoints=wayPts.filter(p=>{const wpt=[...doc.getElementsByTagName('*')].find(el=>localName(el)==='wpt'&&Number(el.getAttribute('lon'))===p[0]&&Number(el.getAttribute('lat'))===p[1]);return /^visit\s*\d+$/i.test(wpt?.querySelector('name')?.textContent||'')});visitWaypoints.forEach(p=>visitPoints.push([p[0],p[1]]))}
+      const start=raw[0],end=raw[raw.length-1];
+      $('start').value=`${start[1].toFixed(6)}, ${start[0].toFixed(6)}`;$('end').value=`${end[1].toFixed(6)}, ${end[0].toFixed(6)}`;
+      waypoints=[];clearMarkers();clearCafes();drawLine(raw);
+      visitPoints.forEach((p,i)=>addViaMarker(p,`VISIT ${i+1}`));setVisitSpurs();
+      forceImportPan(raw);updateImportTime(raw,raw.map(p=>p[3]).filter(Number.isFinite));await updateElevationFromService(raw);updateSummary();showSuggestions();
+      const name=mainRoute?.querySelector('name')?.textContent||all.find(el=>localName(el)==='name'&&el.parentElement&&['metadata','rte','trk'].includes(localName(el.parentElement)))?.textContent;
+      routeName=name?.trim()||file.name.replace(/\.gpx$/i,'');
+      renderWaypoints();forceImportPan(raw);fit();showSuggestions();
+      $('status').textContent=`Imported route with ${visitPoints.length} visit stop${visitPoints.length===1?'':'s'}. Visit directions are shown as green dashed out-and-back routes.`;
+    }catch(e){$('status').textContent='GPX import failed: '+e.message}
+  };
+  reader.onerror=()=>{$('status').textContent='Could not read the selected GPX file.'};
+  reader.readAsText(file)
+}
+$('import').onclick=()=>$('gpxFile').click();$('gpxFile').onchange=e=>{const f=e.target.files?.[0];if(f)importGpxFile(f);e.target.value=''};
+function routeBbox(coords,padMiles=20){let a=90,b=-90,c=180,d=-180;coords.forEach(([lon,lat])=>{a=Math.min(a,lat);b=Math.max(b,lat);c=Math.min(c,lon);d=Math.max(d,lon)});const p=padMiles/69;return [a-p,c-p,b+p,d+p]}
+let cafeSearchBusy=false;
+async function fetchWithTimeout(url,ms=15000){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),ms);try{return await fetch(url,{mode:'cors',signal:controller.signal})}finally{clearTimeout(timer)}}
+async function findCafes(){
+  if(cafeSearchBusy){$('status').textContent='Already searching for cafés…';return}
+  if(!lastCoords.length){$('status').textContent='Plan or import a route first, then search for cafés.';return}
+  cafeSearchBusy=true;
+  try{
+    $('status').textContent='Searching cafés within 2 miles of route…';
+    const [south,west,north,east]=routeBbox(lastCoords,2);
+    const q=`[out:json][timeout:12];(node["amenity"="cafe"](${south},${west},${north},${east});node["amenity"="pub"]["motorcycle"="yes"](${south},${west},${north},${east}););out body 40;`;
+    const endpoints=['https://overpass-api.de/api/interpreter?data=','https://overpass.kumi.systems/api/interpreter?data=','https://overpass.private.coffee/api/interpreter?data='];
+    let lastError='';
+    for(const base of endpoints){for(let attempt=1;attempt<=2;attempt++){try{
+      $('status').textContent=`Searching cafés… service ${endpoints.indexOf(base)+1} of 3${attempt>1?', retry':''}`;
+      const response=await fetchWithTimeout(base+encodeURIComponent(q));
+      if(!response.ok){lastError=`Service returned HTTP ${response.status}`;continue}
+      const data=await response.json();
+      const items=(data.elements||[]).filter(e=>e.lat&&e.lon).slice(0,40).map(e=>({lat:e.lat,lon:e.lon,name:e.tags?.name||'Café',detail:[e.tags?.cuisine,e.tags?.website,e.tags?.phone].filter(Boolean).join(' · ')}));
+      clearCafes();items.forEach(i=>addCafeMarker([i.lon,i.lat],i.name,i.detail));
+      $('status').textContent=items.length?`Found ${items.length} café/pub markers within 2 miles.`:'No cafés found within 2 miles of this route.';return
+    }catch(error){lastError=error.name==='AbortError'?'Request timed out':(error.message||String(error))}}}
+    $('status').textContent=`Café search failed: ${lastError}. Please try again.`;
+  }finally{cafeSearchBusy=false}
+}
+$('cafes').onclick=()=>findCafes().catch(e=>{$('status').textContent='Café search failed: '+(e.message||e);cafeSearchBusy=false});$('cafes').onclick=()=>findCafes().catch(e=>{$('status').textContent='Café search failed: '+e.message+'. This is usually a CORS/rate-limit issue when opening the file directly; try again, use another network, or host the page locally.'});
+$('clearCafes').onclick=()=>{clearCafes();$('status').textContent='Café markers cleared.'};
+function routeKeyPlaces(coords){
+  const pts=(coords||[]).filter(p=>Array.isArray(p)&&Number.isFinite(p[0])&&Number.isFinite(p[1]));
+  if(!pts.length)return [];
+  const start=pts[0],end=pts[pts.length-1],mid=pts[Math.floor(pts.length/2)];
+  const places=[[start,'start'],[mid,'midpoint'],[end,'finish']];
+  const seen=new Set(),out=[];
+  for(const [p,label] of places){
+    const key=`${p[0].toFixed(3)},${p[1].toFixed(3)}`;
+    if(!seen.has(key)){seen.add(key);out.push({label,lat:p[1],lon:p[0]})}
+  }
+  return out;
+}
+async function reverseGeocode(lat,lon){
+  try{
+    const r=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+    if(r.ok){
+      const j=await r.json();
+      const name=j.city||j.locality||j.principalSubdivision||j.countryName;
+      if(name)return name;
+    }
+  }catch(e){}
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=10`);
+    if(r.ok){
+      const j=await r.json();
+      const a=j.address||{};
+      const name=a.town||a.village||a.city||a.county||a.state;
+      if(name)return name;
+      return (j.display_name||'').split(',')[0]?.trim()||null;
+    }
+  }catch(e){}
+  return null;
+}
+async function showSuggestions(){
+  if(!lastCoords.length){
+    $('suggestions').innerHTML='<div class="hint">Plan or import a route first.</div>';
+    return;
+  }
+  $('suggestions').innerHTML='<div class="hint">Finding places along your route…</div>';
+  const places=routeKeyPlaces(lastCoords);
+  const named=await Promise.all(places.map(async p=>({...p,name:await reverseGeocode(p.lat,p.lon)})));
+  const valid=named.filter(p=>p.name);
+  const unique=[...new Map(valid.map(p=>[p.name.toLowerCase(),p])).values()].slice(0,3);
+  if(!unique.length){
+    $('suggestions').innerHTML='<div class="hint">Could not identify place names along this route.</div>';
+    return;
+  }
+  const routeText=unique.map(p=>p.name).join(' to ');
+  const youtube=`https://www.youtube.com/results?search_query=${encodeURIComponent(`motorcycle ride ${routeText} scenic roads`)}`;
+  const mcnVideos=`https://www.youtube.com/results?search_query=${encodeURIComponent(`MCN motorcycle route ${routeText}`)}`;
+  const mcnArticles=`https://www.google.com/search?q=${encodeURIComponent(`MCN motorcycle road route ride ${routeText}`)}`;
+  $('suggestions').innerHTML=`
+    <div class="result"><strong>${routeText}</strong><p>Motorcycle riding routes between the start, midpoint and finish of your route.</p>
+    <a href="${youtube}" target="_blank" rel="noopener">YouTube riding routes ↗</a> · 
+    <a href="${mcnVideos}" target="_blank" rel="noopener">MCN route videos ↗</a> · 
+    <a href="${mcnArticles}" target="_blank" rel="noopener">MCN magazine & road articles ↗</a> · 
+    <a href="https://www.ride.co.uk/magazine-routes/routes-from-ride-magazine" target="_blank" rel="noopener">RiDE magazine routes ↗</a></div>`;
+}
+let weatherAdded=false;
+async function addWeather(){try{$('status').textContent='Loading RainViewer radar…';const r=await fetch('https://api.rainviewer.com/public/weather-maps.json');if(!r.ok)throw Error('RainViewer returned '+r.status);const j=await r.json();const frames=[...(j.radar?.past||[]),...(j.radar?.nowcast||[])];if(!frames.length)throw Error('No radar frames available');const latest=frames[frames.length-1];const url=`${j.host}${latest.path}/256/{z}/{x}/{y}/2/1_1.png`;if(map.getSource('rainviewer'))map.getSource('rainviewer').setTiles([url]);else{map.addSource('rainviewer',{type:'raster',tiles:[url],tileSize:256,minzoom:0,maxzoom:7,attribution:'Radar © RainViewer'});map.addLayer({id:'rainviewer-layer',type:'raster',source:'rainviewer',paint:{'raster-opacity':.72}})}weatherAdded=true;const time=new Date(latest.time*1000);$('status').textContent=`RainViewer radar shown. Latest frame: ${time.toLocaleTimeString()}. Free radar supports up to zoom 7—zoom out if tiles stop appearing. Radar is for awareness only, not a riding safety forecast.`}catch(e){$('status').textContent='Weather radar failed: '+e.message}}
+function removeWeather(){if(map.getLayer('rainviewer-layer'))map.removeLayer('rainviewer-layer');if(map.getSource('rainviewer'))map.removeSource('rainviewer');weatherAdded=false;$('status').textContent='Weather radar hidden.'}
+map.on('zoom',()=>{if(weatherAdded&&map.getZoom()>7.2)$('status').textContent='RainViewer free radar supports up to zoom 7. Zoom out to see radar tiles.'});$('weather').onclick=addWeather;$('weatherOff').onclick=removeWeather;
+$('discover').onclick=showSuggestions;$('export').onclick=download;$('share').onclick=share;$('fit').onclick=fit;$('undo').onclick=()=>{if(visitPoints.length){visitPoints.pop();clearMarkers();waypoints.forEach((p,i)=>addViaMarker(p,`VIA ${i+1}`));visitPoints.forEach((p,i)=>addViaMarker(p,`VISIT ${i+1}`));setVisitSpurs();renderWaypoints();$('status').textContent='Last visit stop removed.'}else if(waypoints.length){waypoints.pop();clearMarkers();waypoints.forEach((p,i)=>addViaMarker(p,`VIA ${i+1}`));visitPoints.forEach((p,i)=>addViaMarker(p,`VISIT ${i+1}`));setVisitSpurs();renderWaypoints();$('status').textContent='Last shaping point removed. Recalculate route.'}};$('clear').onclick=()=>{$('start').value='';$('end').value='';waypoints=[];visitPoints=[];clearMarkers();clearCafes();if(map.getSource('visit-spur'))map.getSource('visit-spur').setData({type:'FeatureCollection',features:[]});if(map.getSource('route'))map.getSource('route').setData({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:[]}});lastCoords=[];$('distance').textContent='—';$('duration').textContent='—';$('avgTemp').textContent='—';$('elevRange').textContent='—';$('elevGain').textContent='—';$('elevMax').textContent='—';routeMeta={distanceKm:null,durationMin:null,avgTempC:null,minEle:null,maxEle:null,gainM:null};renderWaypoints();$('suggestions').innerHTML='<div class="hint">Plan or import a route, then discover suggestions.</div>';$('status').textContent='Cleared.'};
+</script></body></html>
